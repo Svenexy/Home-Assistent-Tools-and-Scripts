@@ -1,15 +1,15 @@
 blueprint:
-  name: Philips Hue Dimmer Switch (ZHA) - scenes, loop & time-based
+  name: ZHA - Philips Hue Dimmer Switch (actions, hold + release)
   description: >
-    Recreates the Hue app behaviour for a Philips Hue Dimmer Switch on ZHA.
-    On button (short press): time-based light scene, scene loop or one scene.
-    Off button turns lights off, up/down buttons dim (hold = continuous).
+    Run any actions on short press, hold, release after hold and double press
+    of each button of a Philips Hue Dimmer (RWL020/RWL021).
+    Use "hold" to start dimming and "release after hold" to stop it.
   domain: automation
   homeassistant:
     min_version: 2024.10.0
   input:
-    switch:
-      name: Hue switch
+    remote:
+      name: Philips Hue Dimmer Switch
       selector:
         device:
           filter:
@@ -22,259 +22,177 @@ blueprint:
                 - battery
           multiple: false
 
-    lights:
-      name: Lights
-      description: Lights to dim / turn off with the switch
-      selector:
-        target:
-          entity:
-            domain: light
+    on_button:
+      name: ON button
+      icon: mdi:power
+      collapsed: true
+      input:
+        on_short:
+          name: Short press
+          default: []
+          selector:
+            action:
+        on_hold:
+          name: Hold
+          default: []
+          selector:
+            action:
+        on_release:
+          name: Release after hold
+          default: []
+          selector:
+            action:
+        on_double:
+          name: Double press
+          default: []
+          selector:
+            action:
 
-    on_mode:
-      name: "ON button: short press mode"
-      default: time_based
-      selector:
-        select:
-          mode: dropdown
-          options:
-            - label: Light based on time
-              value: time_based
-            - label: Scene loop
-              value: scene_loop
-            - label: One scene
-              value: one_scene
+    up_button:
+      name: UP button
+      icon: mdi:brightness-7
+      collapsed: true
+      input:
+        up_short:
+          name: Short press
+          default: []
+          selector:
+            action:
+        up_hold:
+          name: Hold
+          default: []
+          selector:
+            action:
+        up_release:
+          name: Release after hold
+          default: []
+          selector:
+            action:
+        up_double:
+          name: Double press
+          default: []
+          selector:
+            action:
 
-    # --- One scene
-    single_scene:
-      name: "One scene"
-      default: ""
-      selector:
-        entity:
-          domain: scene
+    down_button:
+      name: DOWN button
+      icon: mdi:brightness-5
+      collapsed: true
+      input:
+        down_short:
+          name: Short press
+          default: []
+          selector:
+            action:
+        down_hold:
+          name: Hold
+          default: []
+          selector:
+            action:
+        down_release:
+          name: Release after hold
+          default: []
+          selector:
+            action:
+        down_double:
+          name: Double press
+          default: []
+          selector:
+            action:
 
-    # --- Scene loop
-    loop_scenes:
-      name: "Scene loop"
-      description: Scenes are activated in this order, then it starts over
-      default: []
-      selector:
-        entity:
-          domain: scene
-          multiple: true
+    off_button:
+      name: OFF button
+      icon: mdi:power-off
+      collapsed: true
+      input:
+        off_short:
+          name: Short press
+          default: []
+          selector:
+            action:
+        off_hold:
+          name: Hold
+          default: []
+          selector:
+            action:
+        off_release:
+          name: Release after hold
+          default: []
+          selector:
+            action:
+        off_double:
+          name: Double press
+          default: []
+          selector:
+            action:
 
-    # --- Time based
-    morning_start:
-      name: Morning starts at
-      default: "06:00:00"
-      selector:
-        time:
-    day_start:
-      name: Day starts at
-      default: "09:00:00"
-      selector:
-        time:
-    evening_start:
-      name: Evening starts at
-      default: "18:00:00"
-      selector:
-        time:
-    night_start:
-      name: Night starts at
-      default: "22:30:00"
-      selector:
-        time:
-    morning_scene:
-      name: Morning scene
-      default: ""
-      selector:
-        entity:
-          domain: scene
-    day_scene:
-      name: Day scene
-      default: ""
-      selector:
-        entity:
-          domain: scene
-    evening_scene:
-      name: Evening scene
-      default: ""
-      selector:
-        entity:
-          domain: scene
-    night_scene:
-      name: Night scene
-      default: ""
-      selector:
-        entity:
-          domain: scene
-
-    dim_step:
-      name: Brightness step (%)
-      default: 10
-      selector:
-        number:
-          min: 1
-          max: 50
-          unit_of_measurement: "%"
-
+# restart: a release (or any new button event) cancels a running hold loop
 mode: restart
 max_exceeded: silent
-
-variables:
-  on_mode: !input on_mode
-  single_scene: !input single_scene
-  loop_scenes: !input loop_scenes
-  morning_scene: !input morning_scene
-  day_scene: !input day_scene
-  evening_scene: !input evening_scene
-  night_scene: !input night_scene
-  dim_step: !input dim_step
-  command: "{{ trigger.event.data.command }}"
 
 triggers:
   - trigger: event
     event_type: zha_event
     event_data:
-      device_id: !input switch
-      command: on_short_release
-    id: "on"
-  - trigger: event
-    event_type: zha_event
-    event_data:
-      device_id: !input switch
-      command: off_short_release
-    id: "off"
-  - trigger: event
-    event_type: zha_event
-    event_data:
-      device_id: !input switch
-      command: up_short_release
-    id: "up"
-  - trigger: event
-    event_type: zha_event
-    event_data:
-      device_id: !input switch
-      command: up_hold
-    id: "up_hold"
-  - trigger: event
-    event_type: zha_event
-    event_data:
-      device_id: !input switch
-      command: down_short_release
-    id: "down"
-  - trigger: event
-    event_type: zha_event
-    event_data:
-      device_id: !input switch
-      command: down_hold
-    id: "down_hold"
+      device_id: !input remote
+      cluster_id: 64512
 
 actions:
+  - variables:
+      command: "{{ trigger.event.data.command }}"
   - choose:
-      # ---------- ON button ----------
-      - conditions: "{{ trigger.id == 'on' }}"
-        sequence:
-          - choose:
-              # Light based on time
-              - conditions: "{{ on_mode == 'time_based' }}"
-                sequence:
-                  - choose:
-                      - conditions:
-                          - condition: time
-                            after: !input morning_start
-                            before: !input day_start
-                        sequence:
-                          - action: scene.turn_on
-                            target:
-                              entity_id: "{{ morning_scene }}"
-                      - conditions:
-                          - condition: time
-                            after: !input day_start
-                            before: !input evening_start
-                        sequence:
-                          - action: scene.turn_on
-                            target:
-                              entity_id: "{{ day_scene }}"
-                      - conditions:
-                          - condition: time
-                            after: !input evening_start
-                            before: !input night_start
-                        sequence:
-                          - action: scene.turn_on
-                            target:
-                              entity_id: "{{ evening_scene }}"
-                    default:
-                      - action: scene.turn_on
-                        target:
-                          entity_id: "{{ night_scene }}"
+      - conditions: "{{ command == 'on_short_release' }}"
+        sequence: !input on_short
+      - conditions: "{{ command == 'on_hold' }}"
+        sequence: !input on_hold
+      - conditions: "{{ command == 'on_long_release' }}"
+        sequence: !input on_release
+      - conditions: "{{ command == 'on_double_press' }}"
+        sequence: !input on_double
 
-              # Scene loop
-              - conditions: "{{ on_mode == 'scene_loop' and loop_scenes | length > 0 }}"
-                sequence:
-                  - action: scene.turn_on
-                    target:
-                      entity_id: >-
-                        {% set ns = namespace(idx=-1, latest='') %}
-                        {% for s in loop_scenes %}
-                          {% set t = states(s) %}
-                          {% if t not in ['unknown', 'unavailable'] and t > ns.latest %}
-                            {% set ns.latest = t %}
-                            {% set ns.idx = loop.index0 %}
-                          {% endif %}
-                        {% endfor %}
-                        {{ loop_scenes[(ns.idx + 1) % (loop_scenes | length)] }}
-
-              # One scene
-              - conditions: "{{ on_mode == 'one_scene' and single_scene != '' }}"
-                sequence:
-                  - action: scene.turn_on
-                    target:
-                      entity_id: "{{ single_scene }}"
-
-      # ---------- OFF button ----------
-      - conditions: "{{ trigger.id == 'off' }}"
-        sequence:
-          - action: light.turn_off
-            target: !input lights
-
-      # ---------- DIM UP / DOWN (short) ----------
-      - conditions: "{{ trigger.id == 'up' }}"
-        sequence:
-          - action: light.turn_on
-            target: !input lights
-            data:
-              brightness_step_pct: "{{ dim_step }}"
-              transition: 0.3
-      - conditions: "{{ trigger.id == 'down' }}"
-        sequence:
-          - action: light.turn_on
-            target: !input lights
-            data:
-              brightness_step_pct: "{{ -dim_step }}"
-              transition: 0.3
-
-      # ---------- DIM UP / DOWN (hold, stops on release via mode: restart) ----------
-      - conditions: "{{ trigger.id == 'up_hold' }}"
+      - conditions: "{{ command == 'up_short_release' }}"
+        sequence: !input up_short
+      - conditions: "{{ command == 'up_hold' }}"
         sequence:
           - repeat:
-              count: 40
+              count: 60
               sequence:
                 - action: light.turn_on
-                  target: !input lights
+                  target: !input up_hold
                   data:
-                    brightness_step_pct: "{{ dim_step / 2 }}"
-                    transition: 0.3
+                    brightness_step_pct: 10
+                    transition: 0.4
                 - delay:
-                    milliseconds: 300
-      - conditions: "{{ trigger.id == 'down_hold' }}"
+                    milliseconds: 350
+      - conditions: "{{ command == 'up_long_release' }}"
+        sequence: !input up_release
+      - conditions: "{{ command == 'up_double_press' }}"
+        sequence: !input up_double
+
+      - conditions: "{{ command == 'down_short_release' }}"
+        sequence: !input down_short
+      - conditions: "{{ command == 'down_hold' }}"
         sequence:
           - repeat:
-              count: 40
+              count: 60
               sequence:
                 - action: light.turn_on
-                  target: !input lights
+                  target: !input down_hold
                   data:
-                    brightness_step_pct: "{{ -(dim_step / 2) }}"
-                    transition: 0.3
+                    brightness_step_pct: -10
+                    transition: 0.4
                 - delay:
-                    milliseconds: 300
+                    milliseconds: 350
+      - conditions: "{{ command == 'down_long_release' }}"
+        sequence: !input down_release
+      - conditions: "{{ command == 'down_double_press' }}"
+        sequence: !input down_double
+
+      - conditions: "{{ command == 'off_short_release' }}"
+        sequence: !input off_short
+      - conditions: "{{ command == 'off_hold' }}"
+        sequence: !input off_hold
+      - conditions: "{{ command == 'off_long_release' }}"
+        sequence: !input off_release
+      - conditions: "{{ command == 'off_double_press' }}"
+        sequence: !input off_double
