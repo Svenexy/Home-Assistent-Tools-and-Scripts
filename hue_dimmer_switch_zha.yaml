@@ -5,7 +5,8 @@ blueprint:
     On button (short press): time-based light scene, scene loop or one scene.
     Off button turns lights off, up/down buttons dim (hold = continuous).
   domain: automation
-  min_version: 2024.10.0
+  homeassistant:
+    min_version: 2024.10.0
   input:
     switch:
       name: Hue switch
@@ -177,11 +178,6 @@ actions:
               # Light based on time
               - conditions: "{{ on_mode == 'time_based' }}"
                 sequence:
-                  - variables:
-                      target_scene: >-
-                        {% set now_t = now().strftime('%H:%M:%S') %}
-                        {% set m = '{{ morning_start }}' %}
-                        {{ none }}
                   - choose:
                       - conditions:
                           - condition: time
