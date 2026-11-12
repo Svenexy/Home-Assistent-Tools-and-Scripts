@@ -62,7 +62,9 @@ blueprint:
           name: Hold
           default: []
           selector:
-            action:
+            target:
+              entity:
+                domain: light
         up_release:
           name: Release after hold
           default: []
@@ -88,7 +90,9 @@ blueprint:
           name: Hold
           default: []
           selector:
-            action:
+            target:
+              entity:
+                domain: light
         down_release:
           name: Release after hold
           default: []
